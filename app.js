@@ -45,7 +45,6 @@ app.get("/", (req, res) => {
 	);
 });
 
-require("./models/contactModel");
 require("./models/userModel");
 const user = mongose.model("User");
 
