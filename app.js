@@ -48,6 +48,9 @@ app.get("/", (req, res) => {
 require("./models/userModel");
 const user = mongose.model("User");
 
+require("./models/recordsModel");
+const records = mongose.model("Records");
+
 function generateAccessToken(id) {
 	return jwt.sign(id, tokenSecret, { expiresIn: "43200s" });
 }
@@ -144,4 +147,43 @@ app.post("/api/auth/register", async (req, res) => {
 	} catch (error) {
 		return res.status(500).json({ message: "Internal server error" });
 	}
+});
+
+app.post("/api/saveRecords", async (req, res) => {
+	const { ripe, raw, email } = req.body;
+
+	const userExists = await user.findOne({ email });
+	if (!userExists) {
+		return res.status(400).json({ message: "User does not exist" });
+	}
+
+	try {
+		await records.create({
+			ripe: ripe,
+			raw: raw,
+			email: email,
+			date: Date.now(),
+		});
+		return res.status(201).json({ message: "Record saved successfully" });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({ message: "Internal server error" });
+	}
+});
+
+app.get("/api/getRecords", async (req, res) => {
+	const { email } = req.body;
+
+	const userExists = await user.findOne({ email });
+
+	if (userExists) {
+		const userCompare = userExists.email;
+		const allRecords = await records.find({
+			email: userCompare,
+		});
+
+		return res.status(200).json({ data: allRecords });
+	}
+
+	return res.status(400).json({ message: "User doesn't exist!" });
 });
