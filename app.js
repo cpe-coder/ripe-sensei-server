@@ -171,17 +171,15 @@ app.post("/api/saveRecords", async (req, res) => {
 	}
 });
 
-app.get("/api/getRecords", async (req, res) => {
+app.post("/api/getRecords", async (req, res) => {
 	const { email } = req.body;
+
+	if (!email) return res.status(400).json({ message: "Email is required." });
 
 	const userExists = await user.findOne({ email });
 
 	if (userExists) {
-		const userCompare = userExists.email;
-		const allRecords = await records.find({
-			email: userCompare,
-		});
-
+		const allRecords = await records.find({ email: userExists.email });
 		return res.status(200).json({ data: allRecords });
 	}
 
